@@ -1,6 +1,6 @@
 # Owasp Juiceshop API testing project
 
-- Nesse projeto vou me aprofunda mais em testes de API porém voltadas para segurança
+- Nesse projeto vou me aprofundar mais em testes de API porém voltadas para segurança
 
 Começando a olhar em network após subir uma imagem do docker sobre o Owasp Juiceshop
 
