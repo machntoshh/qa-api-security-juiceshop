@@ -1,0 +1,423 @@
+{
+  "info": {
+    "_postman_id": "cf4b2871-a803-4716-ae27-ed5d7ed881a4",
+    "name": "OWASP Juiceshop",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49149162",
+    "_collection_link": "https://go.postman.co/collection/49149162-cf4b2871-a803-4716-ae27-ed5d7ed881a4?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function() {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response contains user ID and E-mail\", function () {\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json.data).to.have.property(\"id\");\r",
+                  "    pm.expect(json.data.email).to.eql(\"qa.postman@mail.com\")\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"qa.postman@mail.com\",\r\n  \"password\": \"Password123!\",\r\n  \"passwordRepeat\": \"Password123!\",\r\n  \"securityAnswer\": \"Narnia\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Users/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Users",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Return JWT token and bid\", function(){\r",
+                  "    const json = pm.response.json();\r",
+                  "    pm.expect(json.authentication.token).to.be.a(\"string\").and.not.empty;\r",
+                  "    pm.expect(json.authentication).to.have.property(\"bid\");\r",
+                  "\r",
+                  "    pm.environment.set(\"token\", json.authentication.token);\r",
+                  "    pm.environment.set(\"bid\", json.authentication.bid);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"qa.postman@mail.com\",\r\n  \"password\": \"Password123!\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rest/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Invalid Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 401 unauthorized\", function() {\r\n    pm.response.to.have.status(401); // Check if the status code is 401 \r\n})\r\n\r\npm.test(\"Error message indicates invalid credentials\", function() {\r\n    const text = pm.response.text();\r\n    pm.expect(text).to.include(\"Invalid email or password\"); // Check if the response text includes \"Invalid credentials\" message\r\n})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"qa.postman@mail.com\",\r\n  \"password\": \"WrongPassword999\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rest/user/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Duplicate Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\npm.test(\"Blocks duplicate email\", function () {\r\n    pm.expect(pm.response.text()).to.include(\"email must be unique\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"qa.postman@mail.com\",\r\n  \"password\": \"sameemailabove\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Users/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Users",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Search products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Returns non-empty product list\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.data).to.be.an(\"array\").and.not.empty;\r\n})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/products/search?q=apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "apple"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search - Non-Existent",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 OK \", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Returns empty array\", function() {\r\n    pm.expect(pm.response.json().data).to.be.an(\"array\").that.is.empty;\r\n})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/products/search?q=produtoinexistente999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "produtoinexistente999"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Basket",
+      "item": [
+        {
+          "name": "Add basket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Item added with corect ProductID and quantity\", function(){\r\n    const json = pm.response.json();\r\n    pm.expect(json.data.ProductId).to.eql(1);\r\n    pm.expect(json.data.quantity).to.eql(1);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"ProductId\": 1,\r\n  \"BasketId\": \"{{bid}}\",\r\n  \"quantity\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/BasketItems/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "BasketItems",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Basket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Basket contains Products array\", function () {\r\n    const json = pm.response.json();\r\n    pm.expect(json.data.Products).to.be.an(\"array\").and.not.empty;\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/basket/{{bid}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "basket",
+                "{{bid}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add to basket - Negative quantity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Known Juice Shop bug: the API does not validate negative quantities before the DB insert,\n// so it returns 500 (SQLite error) instead of the expected 400 validation error.\npm.test(\"Server crashes on negative quantity (known bug - should be 400)\", function () {\n    pm.response.to.have.status(500);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"ProductId\": 1, \"BasketId\": \"{{bid}}\", \"quantity\": -5 }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/BasketItems/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "BasketItems",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ]
+}
