@@ -7,7 +7,6 @@ Demonstrar domínio prático em:
 - Engenharia reversa de endpoints via **Chrome DevTools (Network)**
 - Testes automatizados de API com **Postman** (`pm.test`, variáveis de ambiente, encadeamento de JWT)
 - Testes negativos e checagens básicas de segurança (**IDOR**, **SQL Injection**, **Exposição de Dados**)
-- Documentação de defeitos no padrão **Jira**
 
 ## Ferramentas Utilizadas
 - **Alvo:** OWASP Juice Shop (Docker local — `http://localhost:3000`)
@@ -22,7 +21,7 @@ Demonstrar domínio prático em:
 ├── postman/
 │   ├── juiceshop.postman_collection.json
 │   └── juiceshop.postman_environment.json
-├── bug-reports/                # 5 bug reports detalhados (padrão Jira)
+├── bug-reports/                # 5 bug reports detalhados
 │   ├── BUG-01-negative-quantity-basket.md
 │   ├── BUG-02-empty-search.md
 │   ├── BUG-03-weak-password-accepted.md
