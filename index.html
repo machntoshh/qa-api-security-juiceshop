@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QA e Segurança de API no OWASP Juice Shop</title>
+  <meta name="description" content="Auditoria prática de contratos de API, testes automatizados no Postman e checagens de segurança (IDOR, SQL Injection) no OWASP Juice Shop.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Host+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Pular para o conteúdo</a>
+
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a class="brand" href="#main">Juice Shop API Audit</a>
+      <div class="nav-route" aria-label="Alvo local">
+        <span>Alvo testado</span>
+        <code class="measured">http://localhost:3000</code>
+      </div>
+      <nav class="nav-links" aria-label="Navegação principal">
+        <a class="nav-link" href="#achados">Defeitos</a>
+        <a class="nav-link" href="#evidencias">Evidências</a>
+        <a class="nav-link" href="#rotas">Endpoints</a>
+        <a class="nav-link" href="#assertions">Scripts</a>
+        <a class="nav-link" href="https://github.com/machntoshh/qa-api-security-juiceshop">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <h1>Cinco falhas reais provadas via Postman</h1>
+          <p class="lead">Mapeamento de rede, testes negativos e auditoria de segurança no Juice Shop.</p>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="https://github.com/machntoshh/qa-api-security-juiceshop">Abrir repositório no GitHub</a>
+            <a class="btn" href="./postman/juiceshop.postman_collection.json" download>Baixar Collection</a>
+          </div>
+        </div>
+
+        <div class="audit-panel" aria-label="Registro de falha IDOR no carrinho">
+          <div class="audit-bar">
+            <span class="chip-person">Operador autenticado com bid 7</span>
+            <code class="measured chip-instrument">GET /rest/basket/1</code>
+          </div>
+          <div class="audit-reading">
+            <div class="reading-cell">
+              <span class="reading-label">Status HTTP esperado vs medido</span>
+              <span class="struck">403 Forbidden</span>
+              <span class="reading">200 OK</span>
+            </div>
+            <div class="reading-cell">
+              <span class="reading-label">Titular do carrinho exposto</span>
+              <span class="struck">UserId 7</span>
+              <span class="reading">UserId 1</span>
+            </div>
+          </div>
+          <div class="diff-rows">
+            <div class="diff-row row--minus">
+              <span>Assertion de bloqueio</span>
+              <code class="measured">pm.expect(pm.response.code).to.be.oneOf([401, 403])</code>
+            </div>
+            <div class="diff-row row--plus">
+              <span>Payload retornado</span>
+              <code class="measured">{"id": 1, "UserId": 1, "Products": [{"name": "Apple Juice"}]}</code>
+            </div>
+          </div>
+          <div class="audit-foot">
+            <span>BUG-04 documentado no padrão Jira</span>
+            <code class="measured">35 ms</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-trail" id="achados">
+      <div class="container">
+        <div class="head-block">
+          <h2>Cinco defeitos documentados</h2>
+          <p class="lead">Três falhas funcionais e duas brechas de segurança reproduzidas em ambiente Docker local.</p>
+        </div>
+
+        <ol class="trail-list">
+          <li class="trail-row">
+            <div class="trail-meta">
+              <span class="chip-person">BUG-01</span>
+              <span class="chip-instrument">Funcional</span>
+            </div>
+            <div class="trail-title">
+              <h3>Quantidade negativa quebra o carrinho com erro 500</h3>
+              <p>Envio de valor negativo não é validado antes de gravar no SQLite.</p>
+            </div>
+            <code class="measured">POST /api/BasketItems/ (500)</code>
+            <a class="trail-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/bug-reports/BUG-01-negative-quantity-basket.md">Ler relatório</a>
+          </li>
+
+          <li class="trail-row">
+            <div class="trail-meta">
+              <span class="chip-person">BUG-02</span>
+              <span class="chip-instrument">Funcional</span>
+            </div>
+            <div class="trail-title">
+              <h3>Busca no front-end envia parâmetro vazio</h3>
+              <p>Interface baixa o catálogo completo de 5.5 kB e filtra no navegador.</p>
+            </div>
+            <code class="measured">GET /rest/products/search?q=</code>
+            <a class="trail-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/bug-reports/BUG-02-empty-search.md">Ler relatório</a>
+          </li>
+
+          <li class="trail-row">
+            <div class="trail-meta">
+              <span class="chip-person">BUG-03</span>
+              <span class="chip-instrument">Funcional</span>
+            </div>
+            <div class="trail-title">
+              <h3>Cadastro aceita senha numérica simples</h3>
+              <p>Ausência de política mínima de entropia na criação de conta.</p>
+            </div>
+            <code class="measured">POST /api/Users/ (201)</code>
+            <a class="trail-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/bug-reports/BUG-03-weak-password-accepted.md">Ler relatório</a>
+          </li>
+
+          <li class="trail-row">
+            <div class="trail-meta">
+              <span class="chip-person">BUG-04</span>
+              <span class="chip-instrument">Segurança</span>
+            </div>
+            <div class="trail-title">
+              <h3>IDOR expõe carrinho de outro usuário</h3>
+              <p>API valida presença do token JWT mas não checa posse do recurso.</p>
+            </div>
+            <code class="measured">GET /rest/basket/1 (200)</code>
+            <a class="trail-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/bug-reports/BUG-04-IDOR-basket.md">Ler relatório</a>
+          </li>
+
+          <li class="trail-row">
+            <div class="trail-meta">
+              <span class="chip-person">BUG-05</span>
+              <span class="chip-instrument">Segurança</span>
+            </div>
+            <div class="trail-title">
+              <h3>Injeção SQL vaza erro interno do SQLite</h3>
+              <p>Aspa simples não sanitizada interrompe a query e revela o banco.</p>
+            </div>
+            <code class="measured">GET /rest/products/search?q=' OR 1=1--</code>
+            <a class="trail-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/bug-reports/BUG-05-vazamento-injection-sql.md">Ler relatório</a>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section-band" id="evidencias">
+      <div class="container" data-switch>
+        <div class="switcher-head">
+          <div class="head-block" style="margin-bottom: 0">
+            <h2>Capturas reais da execução</h2>
+            <p class="lead">Evidências coletadas no Postman e no Chrome DevTools durante os testes.</p>
+          </div>
+          <div class="tab-list" role="tablist" aria-label="Evidências capturadas">
+            <button class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-idor" id="tab-idor" type="button">IDOR no carrinho</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-sqli" id="tab-sqli" tabindex="-1" type="button">Erro SQLite 500</button>
+            <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-devtools" id="tab-devtools" tabindex="-1" type="button">Mapeamento DevTools</button>
+          </div>
+        </div>
+
+        <div role="tabpanel" id="panel-idor" aria-labelledby="tab-idor">
+          <figure class="evidence-frame">
+            <img src="./assets/idor-basket.png" width="1280" height="800" alt="Postman exibindo retorno 200 OK com dados do UserId 1 ao consultar o carrinho 1 com token de outro usuário">
+            <figcaption class="evidence-caption">
+              <span>Teste de autorização falhando (0/1) ao retornar dados do carrinho 1 com status 200 OK.</span>
+              <code class="measured">GET {{baseUrl}}/rest/basket/1</code>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div role="tabpanel" id="panel-sqli" aria-labelledby="tab-sqli" hidden>
+          <figure class="evidence-frame">
+            <img src="./assets/sqli-search.jpg" width="1280" height="800" alt="Postman exibindo retorno 500 Internal Server Error e título HTML com SQLITE_ERROR incomplete input">
+            <figcaption class="evidence-caption">
+              <span>Payload de injeção quebrando a consulta e expondo a engine SQLite no HTML de erro.</span>
+              <code class="measured">Error: SQLITE_ERROR: incomplete input</code>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div role="tabpanel" id="panel-devtools" aria-labelledby="tab-devtools" hidden>
+          <figure class="evidence-frame">
+            <img src="./assets/devtools-network.jpg" width="1280" height="800" alt="Chrome DevTools aberto na aba Network filtrando chamadas Fetch e XHR do OWASP Juice Shop">
+            <figcaption class="evidence-caption">
+              <span>Inspeção de chamadas assíncronas Fetch/XHR para levantamento dos endpoints.</span>
+              <code class="measured">POST /rest/user/login</code>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-table" id="rotas">
+      <div class="container">
+        <div class="head-block">
+          <h2>Quatro fluxos mapeados</h2>
+          <p class="lead">Engenharia reversa dos contratos de API via inspeção de rede no navegador.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th scope="col">Fluxo</th>
+                <th scope="col">Rota</th>
+                <th scope="col">Status</th>
+                <th scope="col">Comportamento verificado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="flow-name">Cadastro</td>
+                <td><code class="measured">POST /api/Users/</code></td>
+                <td><code class="measured">201 Created</code></td>
+                <td>Cria usuário e bloqueia e-mail duplicado com 400.</td>
+              </tr>
+              <tr>
+                <td class="flow-name">Login JWT</td>
+                <td><code class="measured">POST /rest/user/login</code></td>
+                <td><code class="measured">200 OK</code></td>
+                <td>Retorna Bearer token e ID do carrinho.</td>
+              </tr>
+              <tr>
+                <td class="flow-name">Busca</td>
+                <td><code class="measured">GET /rest/products/search?q=</code></td>
+                <td><code class="measured">200 OK</code></td>
+                <td>Lista produtos; quebra com 500 se receber aspa simples.</td>
+              </tr>
+              <tr>
+                <td class="flow-name">Adicionar item</td>
+                <td><code class="measured">POST /api/BasketItems/</code></td>
+                <td><code class="measured">200 OK</code></td>
+                <td>Exige Bearer token; retorna 500 com quantidade negativa.</td>
+              </tr>
+              <tr>
+                <td class="flow-name">Ver carrinho</td>
+                <td><code class="measured">GET /rest/basket/{bid}</code></td>
+                <td><code class="measured">200 OK</code></td>
+                <td>Barra requisição sem token (401), mas permite IDOR entre IDs.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-split" id="assertions">
+      <div class="container split-grid">
+        <div class="split-copy">
+          <h2>Assertions automatizadas em JavaScript</h2>
+          <p class="lead">O script de pós-resposta valida o contrato do login e injeta o token JWT e o ID do carrinho direto no Environment do Postman.</p>
+          <div class="hero-actions">
+            <a class="btn" href="./postman/juiceshop.postman_environment.json" download>Baixar Environment</a>
+            <a class="btn" href="https://github.com/machntoshh/qa-api-security-juiceshop/blob/main/docs/api-mapping.md">Ver documentação</a>
+          </div>
+        </div>
+
+        <div class="audit-panel" aria-label="Script Postman de extração de JWT e validação SQLi">
+          <div class="audit-bar">
+            <span class="chip-person">Scripts Post-response</span>
+            <code class="measured chip-instrument">ChaiJS pm.test</code>
+          </div>
+          <pre class="code-block"><code>pm.test("Returns JWT token and bid", function () {
+  const json = pm.response.json();
+  pm.expect(json.authentication.token).to.be.a("string").and.not.empty;
+  pm.expect(json.authentication).to.have.property("bid");
+
+  pm.environment.set("token", json.authentication.token);
+  pm.environment.set("bid", json.authentication.bid);
+});
+
+pm.test("Should not leak SQL error details", function () {
+  pm.expect(pm.response.code).to.not.eql(500);
+  pm.expect(pm.response.text()).to.not.include("SQLITE_ERROR");
+});</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <p class="footer-statement">Portfólio prático de QA Júnior com foco em APIs e AppSec.</p>
+      <div class="footer-bar">
+        <div class="footer-links">
+          <a class="nav-link" href="https://github.com/machntoshh/qa-api-security-juiceshop">Repositório GitHub</a>
+          <a class="nav-link" href="./postman/juiceshop.postman_collection.json" download>Postman Collection v2.1</a>
+          <a class="nav-link" href="./postman/juiceshop.postman_environment.json" download>Postman Environment</a>
+          <a class="nav-link" href="https://github.com/machntoshh/qa-api-security-juiceshop/tree/main/bug-reports">Pasta Bug Reports</a>
+        </div>
+        <span class="reading-label">OWASP Juice Shop Local Audit</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelectorAll('[data-switch]').forEach((root) => {
+      const tabs = Array.from(root.querySelectorAll('[role="tab"]'));
+      const panels = Array.from(root.querySelectorAll('[role="tabpanel"]'));
+      const activate = (nextTab, focus) => {
+        tabs.forEach((t) => {
+          const active = t === nextTab;
+          t.setAttribute('aria-selected', active ? 'true' : 'false');
+          t.tabIndex = active ? 0 : -1;
+        });
+        panels.forEach((p) => {
+          p.hidden = p.id !== nextTab.getAttribute('aria-controls');
+        });
+        if (focus) nextTab.focus();
+      };
+      tabs.forEach((tab, idx) => {
+        tab.addEventListener('click', () => activate(tab, false));
+        tab.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const dir = e.key === 'ArrowRight' ? 1 : -1;
+            const next = tabs[(idx + dir + tabs.length) % tabs.length];
+            activate(next, true);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
