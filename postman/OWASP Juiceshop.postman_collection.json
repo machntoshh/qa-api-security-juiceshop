@@ -412,12 +412,167 @@
       ]
     },
     {
-      "name": "New Request",
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
+      "name": "Security Checks",
+      "item": [
+        {
+          "name": "IDOR - Get Another User Basket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Should block access to another user's basket (401/403)\", function () {\n    pm.expect(pm.response.code).to.be.oneOf([401, 403]);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rest/basket/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "basket",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "IDOR - No Auth - Get Basket",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Should reject unauthenticated request (401)\", function () {\r\n    pm.response.to.have.status(401);\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/basket/{{bid}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "basket",
+                "{{bid}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "SQLi - Search Products",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Should not return 500 Internal Server Error\", function(){\r\n    pm.expect(pm.response.code).to.not.eql(500);\r\n});\r\n\r\npm.test(\"Should not leak SQL/database error details\", function(){\r\n    const text = pm.response.text();\r\n    pm.expect(text).to.not.include(\"SQLITE_ERROR\");\r\n})"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/products/search?q=' OR 1=1--",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "' OR 1=1--"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sensitive data - WhoAmI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Should not expose sensitive fields(password, totpSecret)\", function(){\r\n    const text = pm.response.text();\r\n    pm.expect(text).to.not.include(\"password\");\r\n    pm.expect(text).to.not.include(\"totpSecret\");\r\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rest/user/whoami",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rest",
+                "user",
+                "whoami"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
